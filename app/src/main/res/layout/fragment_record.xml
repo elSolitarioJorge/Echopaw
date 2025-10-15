@@ -6,27 +6,36 @@
     android:layout_height="match_parent"
     android:background="@drawable/background"
     android:padding="20dp">
+    <ImageView
+        android:id="@+id/back"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/ic_back1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/title"
+        android:layout_marginStart="16dp"
+        android:contentDescription="返回按钮"/>
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="心情录"
         android:textColor="#FFFFFF"
-        android:textSize="24sp"
+        android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="25dp"/>
 
     <!-- 日期 -->
     <TextView
         android:id="@+id/date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="2025.4.27"
+        android:text="2025.04.27"
         android:textColor="@color/white"
-        android:textSize="45sp"
+        android:textSize="35sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/title"
@@ -39,7 +48,7 @@
         android:layout_height="wrap_content"
         android:text="中国·浙江省·杭州市"
         android:textColor="@color/white"
-        android:textSize="22sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/date"
@@ -50,16 +59,19 @@
         android:id="@+id/input_box"
         android:layout_width="0dp"
         android:layout_height="150dp"
-        android:hint="输入分享你此刻的..."
+        android:hint="输入分享你此刻的心情..."
         android:textColor="#FFFFFF"
         android:textColorHint="#80FFFFFF"
-        android:background="@drawable/bg_edit"
+        android:background="@drawable/bg_edit1"
         android:gravity="center"
         android:padding="16dp"
+        android:layout_marginTop="24dp"
+        android:cursorVisible="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/location"
-        android:layout_marginTop="24dp"/>
+        app:layout_constraintTop_toBottomOf="@id/location"/>
 
     <!-- 渐变气泡（初始隐藏） -->
     <ImageView

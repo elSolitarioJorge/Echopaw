@@ -4,10 +4,15 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.os.Bundle
+import android.text.Editable
+import android.text.Layout
 import android.text.SpannableString
+import android.text.TextWatcher
+import android.text.style.AlignmentSpan
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
 import android.text.style.StyleSpan
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,6 +40,8 @@ class RecordFragment : Fragment() {
         Manifest.permission.RECORD_AUDIO
     )
 
+    private var isAnimationRunning = false
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -49,39 +56,46 @@ class RecordFragment : Fragment() {
         setupViews()
         observeViewModel()
 
-        // 处理 EditText 的 hint 样式
+        // 设置提示文字样式（保持居中效果）
         val editText: EditText = binding.inputBox
-        val hintText = "输入分享你此刻的..."
+        val hintText = "输入分享你此刻的心情..."
         val spannableString = SpannableString(hintText)
 
-        // 设置 hint 文字颜色，和布局中 textColorHint 一致
         spannableString.setSpan(
             ForegroundColorSpan(0x80FFFFFF.toInt()),
             0,
             hintText.length,
-            0
+            SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
         )
-        // 放大 hint 文字，比如放大为原来的 1.5 倍，可按需调整
         spannableString.setSpan(
-            RelativeSizeSpan(1.5f),
+            RelativeSizeSpan(1.1f),
             0,
             hintText.length,
-            0
+            SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
         )
-        // 可选：设置为粗体
         spannableString.setSpan(
             StyleSpan(Typeface.BOLD),
             0,
             hintText.length,
-            0
+            SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
         )
+
         editText.hint = spannableString
+
+        // 关键：让光标显示在最左边
+        binding.inputBox.post {
+            binding.inputBox.requestFocus()
+            binding.inputBox.setSelection(0) // 光标设置到位置0（最前面）
+        }
 
         binding.recordBtn.setOnClickListener {
             when (viewModel.recordingState.value) {
                 is RecordViewModel.RecordingState.Recording -> viewModel.stopRecording()
                 else -> startRecording()
             }
+        }
+        binding.back.setOnClickListener {
+            requireActivity().finish()
         }
     }
 
@@ -165,6 +179,7 @@ class RecordFragment : Fragment() {
                 binding.recordingTime.visibility = View.INVISIBLE
                 binding.recordBtn.setImageResource(R.drawable.ic_microphone)
                 binding.recordingStatus.text = "点击录音"
+                isAnimationRunning = false
                 binding.bubble.clearAnimation()
                 if (state is RecordViewModel.RecordingState.Completed) {
                     Toast.makeText(
@@ -181,28 +196,54 @@ class RecordFragment : Fragment() {
                 binding.recordingTime.visibility = View.INVISIBLE
                 binding.recordBtn.setImageResource(R.drawable.ic_microphone)
                 binding.recordingStatus.text = "点击录音"
+                isAnimationRunning = false
                 binding.bubble.clearAnimation()
             }
         }
     }
 
     private fun startBubbleAnimation() {
+        if (!isAdded || _binding == null || isAnimationRunning) {
+            return
+        }
+
+        isAnimationRunning = true
+        animateBubbleLoop()
+    }
+
+    private fun animateBubbleLoop() {
+        if (!isAdded || _binding == null) {
+            isAnimationRunning = false
+            return
+        }
+
         binding.bubble.animate()
             .scaleX(1.05f)
             .scaleY(1.05f)
             .setDuration(600)
             .withEndAction {
+                if (!isAdded || _binding == null) {
+                    isAnimationRunning = false
+                    return@withEndAction
+                }
                 binding.bubble.animate()
                     .scaleX(1f)
                     .scaleY(1f)
                     .setDuration(600)
-                    .withEndAction { startBubbleAnimation() }
+                    .withEndAction {
+                        if (isAdded && _binding != null && isAnimationRunning) {
+                            animateBubbleLoop()
+                        } else {
+                            isAnimationRunning = false
+                        }
+                    }
                     .start()
             }.start()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        isAnimationRunning = false
         if (viewModel.recordingState.value is RecordViewModel.RecordingState.Recording) {
             viewModel.cancelRecording()
         }
