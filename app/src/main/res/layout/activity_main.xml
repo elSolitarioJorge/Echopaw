@@ -5,8 +5,8 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
     android:background="@drawable/background"
+    android:fitsSystemWindows="true"
     tools:context=".navigation.MainActivity">
 
     <androidx.fragment.app.FragmentContainerView
@@ -17,7 +17,81 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/coordinatorLayout"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="@color/transparent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <!--<com.google.android.material.card.MaterialCardView
+            android:id="@+id/mcv_navigation"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="8dp"
+            android:padding="0dp"
+            app:cardBackgroundColor="@color/home_gray"
+            app:cardCornerRadius="24dp"
+            app:cardPreventCornerOverlap="false"
+            app:cardUseCompatPadding="false"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <com.google.android.material.bottomnavigation.BottomNavigationView
+                android:id="@+id/bnv_navigation"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@color/transparent"
+                app:elevation="0dp"
+                app:itemBackground="@color/transparent"
+                app:itemTextAppearanceActive="@style/BnvStyle"
+                app:labelVisibilityMode="labeled"
+                app:menu="@menu/bottom_navigation_menu" />
+
+        </com.google.android.material.card.MaterialCardView>-->
+
+
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bnv_navigation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/home_gray"
+            app:elevation="0dp"
+            app:itemBackground="@color/transparent"
+            app:itemTextAppearanceActive="@style/BnvStyle"
+            app:labelVisibilityMode="labeled"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:menu="@menu/bottom_navigation_menu" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_navigation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:contentDescription="发布"
+            android:padding="0dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_publish"
+            app:backgroundTint="@android:color/transparent"
+            app:fabCustomSize="56dp"
+            app:layout_anchorGravity="bottom|center"
+            app:layout_constraintBottom_toTopOf="@+id/bnv_navigation"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/bnv_navigation"
+            app:maxImageSize="56dp"
+            app:useCompatPadding="false" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/coordinatorLayout"
         android:layout_width="match_parent"
         android:layout_height="100dp"
@@ -34,8 +108,8 @@
             android:layout_gravity="bottom"
             android:backgroundTint="@color/home_gray"
             app:fabAlignmentMode="center"
-            app:fabCradleRoundedCornerRadius="40dp"
-            app:fabCradleVerticalOffset="10dp" />
+            app:fabCradleRoundedCornerRadius="0dp"
+            app:fabCradleVerticalOffset="0dp" />
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bnv_navigation"
@@ -47,7 +121,8 @@
             app:itemBackground="@color/transparent"
             app:itemTextAppearanceActive="@style/BnvStyle"
             app:layout_anchor="@+id/bab_navigation"
-            app:menu="@menu/bottom_navigation_menu" />
+            app:menu="@menu/bottom_navigation_menu"
+            app:labelVisibilityMode="labeled"/>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_navigation"
@@ -67,6 +142,6 @@
             app:layout_anchorGravity="bottom|center" />
 
 
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

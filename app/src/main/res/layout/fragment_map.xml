@@ -15,6 +15,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" >
     </com.amap.api.maps.MapView>
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabWorld"
         android:layout_width="wrap_content"
@@ -43,7 +44,7 @@
 
                 android:orientation="vertical"
                 app:behavior_hideable="false"
-                app:behavior_peekHeight="200dp"
+                app:behavior_peekHeight="600dp"
                 app:layout_behavior="@string/bottom_sheet_behavior">
 
                 <com.google.android.material.card.MaterialCardView

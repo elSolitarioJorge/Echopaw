@@ -5,23 +5,67 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
+/**
+ * 3D球体几何体类
+ * 
+ * 该类用于生成和渲染3D球体模型：
+ * 1. 生成球体的顶点和纹理坐标数据
+ * 2. 管理OpenGL着色器程序
+ * 3. 处理纹理映射和渲染
+ * 4. 支持可配置的细分级别
+ * 
+ * 主要功能：
+ * - 球体几何数据生成
+ * - OpenGL着色器管理
+ * - 纹理坐标映射
+ * - 高效的三角形渲染
+ * 
+ * @param radius 球体半径
+ * @param stacks 垂直方向细分数量（影响球体的垂直精度）
+ * @param slices 水平方向细分数量（影响球体的水平精度）
+ * @param textureId OpenGL纹理ID
+ */
 class Sphere(
     private val radius: Float,
     private val stacks: Int,    // 垂直方向细分
     private val slices: Int,    // 水平方向细分
     private val textureId: Int
 ) {
-    // OpenGL程序ID
+    /**
+     * OpenGL着色器程序ID
+     * 
+     * 编译和链接后的着色器程序标识符
+     */
     private val program: Int
 
-    // 顶点数据缓冲区
+    /**
+     * 顶点数据缓冲区
+     * 
+     * 存储球体所有顶点的3D坐标数据
+     */
     private val vertexBuffer: FloatBuffer
+    
+    /**
+     * 纹理坐标缓冲区
+     * 
+     * 存储球体所有顶点对应的纹理坐标
+     */
     private val texCoordBuffer: FloatBuffer
 
-    // 顶点数量
+    /**
+     * 顶点总数量
+     * 
+     * 用于OpenGL绘制调用的顶点计数
+     */
     private val vertexCount: Int
 
-    // 着色器代码
+    /**
+     * 顶点着色器源代码
+     * 
+     * 定义顶点变换和纹理坐标传递的GLSL代码：
+     * - 接收MVP矩阵进行顶点变换
+     * - 传递纹理坐标到片段着色器
+     */
     private val vertexShaderCode = """
         uniform mat4 uMVPMatrix;
         attribute vec4 vPosition;
@@ -33,6 +77,13 @@ class Sphere(
         }
     """.trimIndent()
 
+    /**
+     * 片段着色器源代码
+     * 
+     * 定义像素颜色计算的GLSL代码：
+     * - 从纹理采样获取像素颜色
+     * - 输出最终的片段颜色
+     */
     private val fragmentShaderCode = """
         precision mediump float;
         varying vec2 vTexCoord;
@@ -81,7 +132,22 @@ class Sphere(
         texCoordBuffer.position(0)
     }
 
-    // 生成球体的顶点坐标和纹理坐标
+    /**
+     * 生成球体的顶点坐标和纹理坐标
+     * 
+     * 该方法使用球坐标系统生成球体的几何数据：
+     * 1. 按照stacks和slices参数细分球体表面
+     * 2. 计算每个顶点的3D坐标
+     * 3. 生成对应的纹理坐标
+     * 4. 构建三角形网格
+     * 
+     * 算法说明：
+     * - 使用纬度（lat）和经度（lng）参数化球面
+     * - 每个四边形被分解为两个三角形
+     * - 纹理坐标按照球面投影映射
+     * 
+     * @return 包含顶点坐标和纹理坐标的数组对
+     */
     private fun generateSphereData(): Pair<FloatArray, FloatArray> {
         val vertices = mutableListOf<Float>()
         val texCoords = mutableListOf<Float>()
@@ -132,7 +198,19 @@ class Sphere(
         return Pair(vertices.toFloatArray(), texCoords.toFloatArray())
     }
 
-    // 绘制球体
+    /**
+     * 绘制球体
+     * 
+     * 该方法执行球体的OpenGL渲染：
+     * 1. 激活着色器程序
+     * 2. 获取着色器变量的位置
+     * 3. 设置顶点属性和uniform变量
+     * 4. 绑定纹理
+     * 5. 执行绘制调用
+     * 6. 清理OpenGL状态
+     * 
+     * @param mvpMatrix 模型-视图-投影变换矩阵
+     */
     fun draw(mvpMatrix: FloatArray) {
         // 使用OpenGL程序
         GLES20.glUseProgram(program)

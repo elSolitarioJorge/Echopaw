@@ -14,7 +14,55 @@ import me.everything.android.ui.overscroll.OverScrollDecoratorHelper
 
 import java.util.List
 
+/**
+ * 消息页面Fragment
+ * 
+ * 该Fragment用于显示消息列表界面：
+ * 1. 管理消息列表的显示
+ * 2. 配置RecyclerView和适配器
+ * 3. 设置列表分割线和滚动效果
+ * 4. 提供模拟消息数据
+ * 
+ * 主要功能：
+ * - 消息列表展示
+ * - RecyclerView配置
+ * - 分割线装饰
+ * - 过度滚动效果
+ * - 模拟数据生成
+ * 
+ * UI组件：
+ * - RecyclerView：消息列表容器
+ * - LinearLayoutManager：线性布局管理器
+ * - DividerItemDecoration：分割线装饰器
+ * - OverScrollDecoratorHelper：过度滚动效果
+ */
 class MessageFragment : Fragment() {
+    
+    /**
+     * 创建Fragment的视图
+     * 
+     * 该方法负责初始化消息列表界面：
+     * 1. 加载fragment_message布局
+     * 2. 配置RecyclerView的布局管理器
+     * 3. 设置分割线装饰器
+     * 4. 创建模拟消息数据
+     * 5. 设置适配器和过度滚动效果
+     * 
+     * RecyclerView配置：
+     * - 使用LinearLayoutManager进行垂直线性布局
+     * - 添加自定义分割线装饰
+     * - 启用垂直方向的过度滚动效果
+     * 
+     * 数据源：
+     * - 包含11条模拟消息数据
+     * - 每条消息包含图片、时间、位置和标签信息
+     * - 支持#神秘、#快乐、#期待等不同标签类型
+     * 
+     * @param inflater 用于加载布局的LayoutInflater
+     * @param container 父容器ViewGroup，可能为null
+     * @param savedInstanceState 保存的实例状态，可能为null
+     * @return 创建的View对象
+     */
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
