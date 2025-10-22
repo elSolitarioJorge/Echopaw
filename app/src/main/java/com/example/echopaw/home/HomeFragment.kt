@@ -6,6 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ScrollView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import com.example.echopaw.R
 import com.example.echopaw.databinding.FragmentHomeBinding
@@ -81,6 +83,11 @@ class HomeFragment : Fragment() {
                 // 添加缩放转场动画效果
                 requireActivity().overridePendingTransition(R.anim.zoom_in, R.anim.zoom_out)
             }
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(0, systemBars.top, 0, 0)
+            WindowInsetsCompat.CONSUMED
         }
     }
 

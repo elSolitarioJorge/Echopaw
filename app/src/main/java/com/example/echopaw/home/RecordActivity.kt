@@ -1,11 +1,13 @@
 package com.example.echopaw.home
 
 
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import com.example.echopaw.R
 
 /**
@@ -53,7 +55,7 @@ class RecordActivity : AppCompatActivity() {
      * 
      * 通过版本检查确保兼容性，提供最佳的视觉体验
      */
-    private fun setupStatusBar() {
+    /*private fun setupStatusBar() {
         // Android 5.0（API 21）及以上支持设置状态栏颜色
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.statusBarColor = ContextCompat.getColor(this, R.color.transparent)
@@ -67,5 +69,28 @@ class RecordActivity : AppCompatActivity() {
         // 设置全屏布局，内容延伸到状态栏区域
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
                 View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+    }*/
+    private fun setupStatusBar() {
+        // 沉浸式布局：让内容延伸到状态栏区域
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.statusBarColor = Color.TRANSPARENT
+            window.navigationBarColor = Color.TRANSPARENT // 底部系统导航栏背景透明
+        }
+
+        // 设置浅色背景对应的深色文字（仅支持 Android 6.0+）
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val decorView = window.decorView
+            var flags = decorView.systemUiVisibility
+            flags =
+                flags or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            flags = flags or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR // 深色文字
+            decorView.systemUiVisibility = flags
+        } else {
+            // 低版本只设置沉浸，不支持文字颜色
+            window.decorView.systemUiVisibility =
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        }
     }
 }

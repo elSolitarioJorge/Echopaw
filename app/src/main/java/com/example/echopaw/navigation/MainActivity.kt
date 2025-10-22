@@ -24,6 +24,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.FragmentManager
 import com.example.echopaw.R
@@ -144,8 +145,13 @@ class MainActivity : AppCompatActivity(), INavigationContract.INavigationView {
     private fun setupWindowInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            v.setPadding(systemBars.left, 0, systemBars.right, 0)
             insets
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(binding.coordinatorLayout) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(0, 0, 0, systemBars.bottom)
+            WindowInsetsCompat.CONSUMED
         }
     }
 
@@ -159,7 +165,7 @@ class MainActivity : AppCompatActivity(), INavigationContract.INavigationView {
      * 
      * 通过版本检查确保在不同Android版本上的兼容性。
      */
-    private fun setupStatusBar() {
+    /*private fun setupStatusBar() {
         // Android 5.0（API 21）及以上支持设置状态栏颜色
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.statusBarColor = ContextCompat.getColor(this, R.color.transparent)
@@ -172,7 +178,31 @@ class MainActivity : AppCompatActivity(), INavigationContract.INavigationView {
         }
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
                 View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+    }*/
+    private fun setupStatusBar() {
+        // 沉浸式布局：让内容延伸到状态栏区域
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.statusBarColor = Color.TRANSPARENT
+            window.navigationBarColor = Color.TRANSPARENT // 底部系统导航栏背景透明
+        }
+
+        // 设置浅色背景对应的深色文字（仅支持 Android 6.0+）
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val decorView = window.decorView
+            var flags = decorView.systemUiVisibility
+            flags = flags or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            flags = flags or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR // 深色文字
+            decorView.systemUiVisibility = flags
+        } else {
+            // 低版本只设置沉浸，不支持文字颜色
+            window.decorView.systemUiVisibility =
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        }
+
     }
+
 
     /**
      * 设置导航系统
@@ -660,6 +690,50 @@ class MainActivity : AppCompatActivity(), INavigationContract.INavigationView {
      */
     override fun showError() {
         Toast.makeText(this, "加载导航失败，请重试", Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * 显示底部导航栏
+     * 
+     * 该方法用于显示coordinatorLayout（底部导航栏容器）：
+     * 1. 设置coordinatorLayout为可见状态
+     * 2. 可以被Fragment调用来控制导航栏显示
+     * 3. 提供平滑的显示效果
+     */
+    fun showBottomNavigation() {
+        binding.coordinatorLayout.visibility = View.VISIBLE
+    }
+
+    /**
+     * 隐藏底部导航栏
+     * 
+     * 该方法用于隐藏coordinatorLayout（底部导航栏容器）：
+     * 1. 设置coordinatorLayout为不可见状态
+     * 2. 可以被Fragment调用来控制导航栏隐藏
+     * 3. 提供更好的沉浸式体验
+     */
+    fun hideBottomNavigation() {
+        binding.coordinatorLayout.visibility = View.GONE
+    }
+
+    /**
+     * 切换底部导航栏可见性
+     * 
+     * 该方法用于切换coordinatorLayout的可见性状态：
+     * 1. 如果当前可见则隐藏，如果隐藏则显示
+     * 2. 提供便捷的切换功能
+     * 3. 返回切换后的可见性状态
+     * 
+     * @return true表示切换后为可见状态，false表示切换后为隐藏状态
+     */
+    fun toggleBottomNavigation(): Boolean {
+        return if (binding.coordinatorLayout.visibility == View.VISIBLE) {
+            hideBottomNavigation()
+            false
+        } else {
+            showBottomNavigation()
+            true
+        }
     }
 
     /**

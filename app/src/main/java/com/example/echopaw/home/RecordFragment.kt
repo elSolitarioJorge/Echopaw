@@ -19,6 +19,8 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -163,6 +165,11 @@ class RecordFragment : Fragment() {
         // 设置返回按钮点击事件
         binding.back.setOnClickListener {
             requireActivity().finish()
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(0, systemBars.top, 0, 0)
+            WindowInsetsCompat.CONSUMED
         }
     }
 

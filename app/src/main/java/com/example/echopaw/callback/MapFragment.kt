@@ -28,6 +28,7 @@ import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -147,8 +148,8 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
     private var isOpen = false
     
     /** 底部面板行为控制器 */
-    private var bottomSheetBehavior: BottomSheetBehavior<*>? = null
-
+    // private var bottomSheetBehavior: BottomSheetBehavior<*>? = null
+    private lateinit var bottomSheetBehavior: BottomSheetBehavior<RelativeLayout>
     /**
      * 位置数据更新监听接口
      * 
@@ -245,12 +246,11 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
         initView()
         initSearch()
 
-        ViewCompat.setOnApplyWindowInsetsListener(binding.map) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+            v.setPadding(0, 0, 0, 0)
+            WindowInsetsCompat.CONSUMED
         }
-
     }
 
     /**
@@ -438,22 +438,35 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
             addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
                 override fun onStateChanged(bottomSheet: View, newState: Int) {
                     when (newState) {
+                        // 折叠状态
                         BottomSheetBehavior.STATE_COLLAPSED -> {
-
+                            binding.ibBack.visibility = View.GONE
+                            // 显示底部导航
+                            showBottomNavigation()
                         }
+                        // 展开状态
                         BottomSheetBehavior.STATE_EXPANDED -> {
+                            binding.ibBack.visibility = View.GONE
+                            // 显示底部导航
+                            showBottomNavigation()
                             // Hide search layout when bottom sheet is expanded
                             if (isOpen) {
                                 initClose()
                             }
                         }
+                        // 拖动中
                         BottomSheetBehavior.STATE_DRAGGING -> {
                             // Handle dragging state if needed
                         }
+                        // 动画过渡中
                         BottomSheetBehavior.STATE_SETTLING -> {
                             // Handle settling state if needed
                         }
+                        // 已隐藏
                         BottomSheetBehavior.STATE_HIDDEN -> {
+                            binding.ibBack.visibility = View.VISIBLE
+                            // 隐藏底部导航
+                            hideBottomNavigation()
                             // Handle hidden state if needed
                         }
                     }
@@ -466,6 +479,11 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 binding.bottomSheetRay.elevation = 12f  // 确保高于地图
             }
+        }
+
+        binding.ibBack.setOnClickListener {
+            // 点击后展开底部面板
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
         }
     }
 
@@ -748,6 +766,7 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
      * 1. 处理用户长按地图的事件
      * 2. 将经纬度坐标转换为地址信息
      * 3. 在地图上更新标记位置
+     * 4. 隐藏底部导航栏，提供沉浸式体验
      * 
      * @param p0 长按位置的经纬度坐标
      */
@@ -755,6 +774,10 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
         if (p0 != null) {
             latLonToAddress(p0)
             updateMapmark(p0)
+            // 长按地图时隐藏底部导航栏，提供沉浸式体验
+            hideBottomNavigation()
+            // 隐藏底部面板
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
         }
     }
 
@@ -765,6 +788,7 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
      * 1. 处理用户点击地图的事件
      * 2. 将经纬度坐标转换为地址信息
      * 3. 在地图上更新标记位置
+     * 4. 隐藏底部导航栏，方便用户导航
      * 
      * @param p0 点击位置的经纬度坐标
      */
@@ -772,6 +796,10 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
         if (p0 != null) {
             latLonToAddress(p0)
             updateMapmark(p0)
+            // 点击地图时显示底部导航栏，方便用户导航
+            hideBottomNavigation()
+            // 隐藏底部面板
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
         }
     }
 
@@ -967,6 +995,73 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
         super.onDestroyView()
         binding.mapView.onDestroy()
         _binding = null
+    }
+
+    /**
+     * 显示底部导航栏
+     * 
+     * 该方法用于显示MainActivity中的coordinatorLayout（底部导航栏）：
+     * 1. 获取MainActivity实例
+     * 2. 调用MainActivity的showBottomNavigation方法
+     * 3. 安全地处理类型转换，避免ClassCastException
+     * 
+     * 使用场景：
+     * - 当需要在地图页面显示底部导航时
+     * - 从全屏模式返回正常模式时
+     */
+    fun showBottomNavigation() {
+        try {
+            val mainActivity = requireActivity() as? com.example.echopaw.navigation.MainActivity
+            mainActivity?.showBottomNavigation()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing bottom navigation: ${e.message}")
+        }
+    }
+
+    /**
+     * 隐藏底部导航栏
+     * 
+     * 该方法用于隐藏MainActivity中的coordinatorLayout（底部导航栏）：
+     * 1. 获取MainActivity实例
+     * 2. 调用MainActivity的hideBottomNavigation方法
+     * 3. 安全地处理类型转换，避免ClassCastException
+     * 
+     * 使用场景：
+     * - 当需要全屏显示地图时
+     * - 提供沉浸式地图浏览体验时
+     */
+    fun hideBottomNavigation() {
+        try {
+            val mainActivity = requireActivity() as? com.example.echopaw.navigation.MainActivity
+            mainActivity?.hideBottomNavigation()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error hiding bottom navigation: ${e.message}")
+        }
+    }
+
+    /**
+     * 切换底部导航栏可见性
+     * 
+     * 该方法用于切换MainActivity中coordinatorLayout的可见性：
+     * 1. 获取MainActivity实例
+     * 2. 调用MainActivity的toggleBottomNavigation方法
+     * 3. 返回切换后的可见性状态
+     * 4. 安全地处理类型转换和异常情况
+     * 
+     * @return true表示切换后为可见状态，false表示切换后为隐藏状态，null表示操作失败
+     * 
+     * 使用场景：
+     * - 双击地图切换导航栏显示状态
+     * - 提供快捷的显示/隐藏切换功能
+     */
+    fun toggleBottomNavigation(): Boolean? {
+        return try {
+            val mainActivity = requireActivity() as? com.example.echopaw.navigation.MainActivity
+            mainActivity?.toggleBottomNavigation()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling bottom navigation: ${e.message}")
+            null
+        }
     }
 
     /**

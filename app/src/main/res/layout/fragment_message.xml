@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#100D22"
-    android:layout_marginBottom="50dp"
     tools:context=".message.MessageFragment">
     <TextView
         android:layout_width="match_parent"
@@ -32,7 +31,7 @@
         android:layout_weight="1"
         android:background="@drawable/bg2"
         android:paddingStart="20dp"
-        android:layout_marginBottom="50dp"
+        android:layout_marginBottom="115dp"
         android:paddingEnd="20dp">
 
         <androidx.recyclerview.widget.RecyclerView
