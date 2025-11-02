@@ -140,38 +140,6 @@ class RecordViewModel : ViewModel() {
             MediaRecorder()
         }
     }
-    // 开始录音
-//    fun startRecording(context: Context) {
-//        if (_recordingState.value is RecordingState.Recording) return
-//
-//        try {
-//            // 创建录音文件
-//            currentFile = createRecordingFile(context)
-//
-//            // 初始化MediaRecorder
-//            mediaRecorder = createMediaRecorder().apply {
-//                setAudioSource(MediaRecorder.AudioSource.MIC)
-//                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-//                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-//                setOutputFile(createTempFile().absolutePath)
-//                prepare()
-//                start()
-//            }
-//
-//            startTime = System.currentTimeMillis()
-//            _recordingState.value = RecordingState.Recording
-//
-//            // 启动计时器
-//            startRecordingTimer()
-//
-//            // 启动波形数据采集
-//            startWaveformCollection()
-//
-//        } catch (e: Exception) {
-//            _recordingState.value = RecordingState.Error("录音启动失败: ${e.message ?: "未知错误"}")
-//            cleanUpRecording()
-//        }
-//    }
 
     /**
      * 停止录音
@@ -236,29 +204,6 @@ class RecordViewModel : ViewModel() {
         }
     }
 
-//    private fun startWaveformCollection() {
-//        waveformJob = viewModelScope.launch(Dispatchers.IO) {
-//            val maxPoints = 50 // 波形点数
-//            val waveformList = MutableList(maxPoints) { 0f } // 初始化全 0
-//
-//            while (isActive && mediaRecorder != null) {
-//                try {
-//                    val rawAmplitude = mediaRecorder?.maxAmplitude?.toFloat() ?: 0f
-//                    val amplitude = (rawAmplitude / 32767f * 50f).coerceIn(0f, 50f)
-//
-//                    // 滚动波形：移除最左边的点，加入新振幅
-//                    waveformList.removeAt(0)
-//                    waveformList.add(amplitude * (0.5f + Math.random().toFloat() * 0.5f)) // 微抖动
-//
-//                    _waveformData.value = waveformList.toList() // 发送给 UI
-//                    Log.d("Waveform", "Amplitude: $amplitude")
-//                } catch (e: Exception) {
-//                    _waveformData.value = List(maxPoints) { 0f }
-//                }
-//                delay(50)
-//            }
-//        }
-//    }
     /**
      * 开始录音
      * 
@@ -306,33 +251,7 @@ class RecordViewModel : ViewModel() {
             cleanUpRecording()
         }
     }
-//    private fun startWaveformCollection() {
-//        waveformJob = viewModelScope.launch(Dispatchers.IO) {
-//            val maxPoints = 50
-//            val waveformList = MutableList(maxPoints) { 0f }
-//
-//            delay(500) // 给 MediaRecorder 启动缓冲时间
-//
-//            while (isActive && mediaRecorder != null) {
-//                try {
-//                    var rawAmplitude = mediaRecorder?.maxAmplitude?.toFloat() ?: 0f
-//                    if (rawAmplitude == 0f) rawAmplitude = 1f // 防止完全为 0
-//
-//                    val amplitude = (rawAmplitude / 32767f * 100f).coerceIn(0f, 100f)
-//
-//                    waveformList.removeAt(0)
-//                    waveformList.add(amplitude)
-//
-//                    _waveformData.value = waveformList.toList()
-//                } catch (e: Exception) {
-//                    _waveformData.value = List(maxPoints) { 0f }
-//                }
-//                delay(50)
-//            }
-//        }
-//    }
 
-//
     /**
      * 开始波形数据收集
      * 

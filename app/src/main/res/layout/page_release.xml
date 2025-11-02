@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/bg">
+    
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="心情录"
+        android:gravity="center"
+        android:textSize="20sp"
+        android:textColor="@color/white"
+        android:layout_marginTop="16dp"/>
+
+    <ImageView
+        android:id="@+id/iv_emotion"
+        android:layout_width="320dp"
+        android:layout_height="300dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="48dp"
+        android:layout_marginBottom="88dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/img_emotion_happy"/>
+
+    <ImageView
+        android:id="@+id/btn_visible"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:src="@drawable/img_disclose"
+        android:layout_margin="24dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="64dp"
+        android:paddingBottom="16dp">
+
+        <CheckBox
+            android:id="@+id/cb_agree"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:buttonTint="#8F56F4"
+            android:layout_gravity="start|top"
+            android:background="@null"
+            android:foreground="@null"
+            android:layout_marginEnd="12dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="4dp"/>
+
+        <TextView
+            android:id="@+id/tv_agree_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:text="勾选代表我同意将本段语音公开发布在地图所定制位置\n您可查看完整 用户协议"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            android:layout_marginBottom="8dp"/>
+
+    </LinearLayout>
+
+
+    <ImageView
+        android:id="@+id/btn_release"
+        android:layout_width="180dp"
+        android:layout_height="60dp"
+        android:src="@drawable/ic_release"
+        android:layout_gravity="center"/>
+
+</LinearLayout>

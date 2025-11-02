@@ -212,7 +212,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="许愿"
+                        android:text="留声机"
                         android:textColor="@color/white"
                         android:textSize="12sp"
                         android:layout_gravity="center"/>
@@ -238,7 +238,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="留声瓶"
+                        android:text="留声漂流瓶"
                         android:textColor="@color/white"
                         android:textSize="12sp"
                         android:layout_gravity="center"/>

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background">
+
+
+    <ImageView
+        android:id="@+id/btn_back"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/img_4" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="留声机"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_back"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btn_back" />
+
+    <ImageView
+        android:id="@+id/imageView5"
+        android:layout_width="80dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="24dp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/textView"
+        app:srcCompat="@drawable/img_12" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="72dp"
+        android:text="对未来说些什么..."
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+    <ImageView
+        android:id="@+id/imageView16"
+        android:layout_width="400dp"
+        android:layout_height="300dp"
+        android:layout_marginTop="-30dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView3"
+        app:srcCompat="@drawable/img_13" />
+
+    <ImageView
+        android:id="@+id/imageView18"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView16"
+        app:srcCompat="@drawable/img_14" />
+
+    <ImageView
+        android:id="@+id/imageView19"
+        android:layout_width="0dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="48dp"
+        android:layout_marginEnd="24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView18"
+        app:srcCompat="@drawable/img_15" />
+
+    <ImageView
+        android:id="@+id/btn_play"
+        android:layout_width="88dp"
+        android:layout_height="88dp"
+        android:layout_marginBottom="44dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/ic_microphone" />
+
+    <ImageView
+        android:id="@+id/iv_reset"
+        android:layout_width="64dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_reset"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_play"
+        app:layout_constraintEnd_toStartOf="@+id/btn_play"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btn_play"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/iv_confirm"
+        android:layout_width="64dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_confirm"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_play"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btn_play"
+        app:layout_constraintTop_toTopOf="@+id/btn_play"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/tv_reset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="重录"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        app:layout_constraintEnd_toEndOf="@+id/iv_reset"
+        app:layout_constraintStart_toStartOf="@+id/iv_reset"
+        app:layout_constraintTop_toBottomOf="@+id/iv_reset" />
+
+    <TextView
+        android:id="@+id/tv_play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="录音中"
+        android:textColor="@color/white"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="@+id/btn_play"
+        app:layout_constraintStart_toStartOf="@+id/btn_play"
+        app:layout_constraintTop_toBottomOf="@+id/btn_play" />
+
+    <TextView
+        android:id="@+id/tv_send"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="发送"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="@+id/iv_confirm"
+        app:layout_constraintStart_toStartOf="@+id/iv_confirm"
+        app:layout_constraintTop_toBottomOf="@+id/iv_confirm" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

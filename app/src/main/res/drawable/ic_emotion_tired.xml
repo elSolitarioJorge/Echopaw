@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    
+    <!-- 脸部圆形背景 -->
+    <path
+        android:fillColor="#D3D3D3"
+        android:pathData="M100,20 C144.18,20 180,55.82 180,100 C180,144.18 144.18,180 100,180 C55.82,180 20,144.18 20,100 C20,55.82 55.82,20 100,20 Z" />
+    
+    <!-- 左眼（疲惫的半闭眼） -->
+    <path
+        android:pathData="M65,90 Q75,85 85,90"
+        android:strokeWidth="3"
+        android:strokeColor="#333333" />
+    
+    <!-- 右眼（疲惫的半闭眼） -->
+    <path
+        android:pathData="M115,90 Q125,85 135,90"
+        android:strokeWidth="3"
+        android:strokeColor="#333333" />
+    
+    <!-- 疲惫的嘴巴 -->
+    <path
+        android:pathData="M80,135 Q100,125 120,135"
+        android:strokeWidth="3"
+        android:strokeColor="#333333" />
+    
+    <!-- 眉毛（下垂的） -->
+    <path
+        android:pathData="M60,75 Q75,80 90,75"
+        android:strokeWidth="2"
+        android:strokeColor="#333333" />
+    
+    <path
+        android:pathData="M110,75 Q125,80 140,75"
+        android:strokeWidth="2"
+        android:strokeColor="#333333" />
+    
+    <!-- 黑眼圈 -->
+    <path
+        android:fillColor="#9E9E9E"
+        android:pathData="M75,95 C80.52,95 85,99.48 85,105 C85,110.52 80.52,115 75,115 C69.48,115 65,110.52 65,105 C65,99.48 69.48,95 75,95 Z"
+        android:fillAlpha="0.3" />
+    
+    <path
+        android:fillColor="#9E9E9E"
+        android:pathData="M125,95 C130.52,95 135,99.48 135,105 C135,110.52 130.52,115 125,115 C119.48,115 115,110.52 115,105 C115,99.48 119.48,95 125,95 Z"
+        android:fillAlpha="0.3" />
+</vector>

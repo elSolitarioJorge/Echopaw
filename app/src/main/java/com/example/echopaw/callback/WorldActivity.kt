@@ -1,10 +1,15 @@
 package com.example.echopaw.callback
 
 import android.app.Activity
+import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import androidx.core.view.WindowCompat
 import com.example.echopaw.R
+import com.example.echopaw.utils.StatusBarUtils
 
 /**
  * 3D地球视图Activity
@@ -49,6 +54,11 @@ class WorldActivity : Activity() {
         // 初始化自定义GLSurfaceView（保持原有逻辑）
         glSurfaceView = EarthGLSurfaceView(this)
         setContentView(glSurfaceView)
+        setupStatusBar()
+    }
+
+    private fun setupStatusBar() {
+        StatusBarUtils.setupImmersiveStatusBarLegacy(this, lightStatusBar = true)
     }
 
     /**

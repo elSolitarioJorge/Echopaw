@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    
+    <!-- 脸部圆形背景 -->
+    <path
+        android:fillColor="#6A1B9A"
+        android:pathData="M100,20 C144.18,20 180,55.82 180,100 C180,144.18 144.18,180 100,180 C55.82,180 20,144.18 20,100 C20,55.82 55.82,20 100,20 Z" />
+    
+    <!-- 左眼（神秘的眯眼） -->
+    <path
+        android:fillColor="#E1BEE7"
+        android:pathData="M75,85 C80.52,85 85,89.48 85,95 C85,100.52 80.52,105 75,105 C69.48,105 65,100.52 65,95 C65,89.48 69.48,85 75,85 Z" />
+    
+    <!-- 右眼（神秘的眯眼） -->
+    <path
+        android:fillColor="#E1BEE7"
+        android:pathData="M125,85 C130.52,85 135,89.48 135,95 C135,100.52 130.52,105 125,105 C119.48,105 115,100.52 115,95 C115,89.48 119.48,85 125,85 Z" />
+    
+    <!-- 神秘的微笑 -->
+    <path
+        android:pathData="M75,125 Q100,135 125,125"
+        android:strokeWidth="3"
+        android:strokeColor="#333333" />
+    
+    <!-- 神秘的弧形眉毛 -->
+    <path
+        android:pathData="M60,75 Q75,65 90,75"
+        android:strokeWidth="2"
+        android:strokeColor="#333333" />
+    
+    <path
+        android:pathData="M110,75 Q125,65 140,75"
+        android:strokeWidth="2"
+        android:strokeColor="#333333" />
+    
+    <!-- 面纱效果（半透明覆盖） -->
+    <path
+        android:fillColor="#4A148C"
+        android:fillAlpha="0.2"
+        android:pathData="M100,20 C144.18,20 180,55.82 180,100 C180,144.18 144.18,180 100,180 C55.82,180 20,144.18 20,100 C20,55.82 55.82,20 100,20 Z" />
+    
+    <!-- 星星装饰 -->
+    <path
+        android:fillColor="#E1BEE7"
+        android:pathData="M40,40 L42,45 L47,45 L43,48 L45,53 L40,50 L35,53 L37,48 L33,45 L38,45 Z"
+        android:fillAlpha="0.8" />
+    
+    <path
+        android:fillColor="#E1BEE7"
+        android:pathData="M160,40 L162,45 L167,45 L163,48 L165,53 L160,50 L155,53 L157,48 L153,45 L158,45 Z"
+        android:fillAlpha="0.8" />
+    
+    <!-- 月牙装饰 -->
+    <path
+        android:fillColor="#E1BEE7"
+        android:pathData="M100,160 Q90,150 100,140 Q110,150 100,160"
+        android:fillAlpha="0.6" />
+</vector>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- 允许对特定域名的明文HTTP通信 -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">fit-office.singzer.cn</domain>
+    </domain-config>
+    
+    <!-- 可选：为localhost和测试环境添加例外 -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>

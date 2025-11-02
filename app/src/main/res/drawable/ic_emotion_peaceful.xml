@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    
+    <!-- 脸部圆形背景 -->
+    <path
+        android:fillColor="#E8F5E8"
+        android:pathData="M100,20 C144.18,20 180,55.82 180,100 C180,144.18 144.18,180 100,180 C55.82,180 20,144.18 20,100 C20,55.82 55.82,20 100,20 Z" />
+    
+    <!-- 左眼（闭着的） -->
+    <path
+        android:pathData="M65,90 Q75,85 85,90"
+        android:strokeWidth="3"
+        android:strokeColor="#333333" />
+    
+    <!-- 右眼（闭着的） -->
+    <path
+        android:pathData="M115,90 Q125,85 135,90"
+        android:strokeWidth="3"
+        android:strokeColor="#333333" />
+    
+    <!-- 平和的微笑 -->
+    <path
+        android:pathData="M75,125 Q100,135 125,125"
+        android:strokeWidth="3"
+        android:strokeColor="#333333" />
+    
+    <!-- 眉毛（放松的） -->
+    <path
+        android:pathData="M60,75 Q75,70 90,75"
+        android:strokeWidth="2"
+        android:strokeColor="#333333" />
+    
+    <path
+        android:pathData="M110,75 Q125,70 140,75"
+        android:strokeWidth="2"
+        android:strokeColor="#333333" />
+    
+    <!-- 光环效果 -->
+    <path
+        android:pathData="M100,30 A70,70 0 1,1 99.9,30"
+        android:strokeWidth="2"
+        android:strokeColor="#FFD700"
+        android:strokeAlpha="0.6" />
+    
+    <!-- 内心的光点 -->
+    <path
+        android:fillColor="#81C784"
+        android:pathData="M100,110 C102.76,110 105,112.24 105,115 C105,117.76 102.76,120 100,120 C97.24,120 95,117.76 95,115 C95,112.24 97.24,110 100,110 Z"
+        android:fillAlpha="0.6" />
+</vector>

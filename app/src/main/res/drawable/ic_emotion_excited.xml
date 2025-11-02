@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    
+    <!-- 脸部圆形背景 -->
+    <path
+        android:fillColor="#FF9500"
+        android:pathData="M100,20 C144.18,20 180,55.82 180,100 C180,144.18 144.18,180 100,180 C55.82,180 20,144.18 20,100 C20,55.82 55.82,20 100,20 Z" />
+    
+    <!-- 左眼（兴奋的大眼睛） -->
+    <path
+        android:fillColor="#333333"
+        android:pathData="M75,75 C83.28,75 90,81.72 90,90 C90,98.28 83.28,105 75,105 C66.72,105 60,98.28 60,90 C60,81.72 66.72,75 75,75 Z" />
+    
+    <!-- 右眼（兴奋的大眼睛） -->
+    <path
+        android:fillColor="#333333"
+        android:pathData="M125,75 C133.28,75 140,81.72 140,90 C140,98.28 133.28,105 125,105 C116.72,105 110,98.28 110,90 C110,81.72 116.72,75 125,75 Z" />
+    
+    <!-- 兴奋的大笑嘴巴 -->
+    <path
+        android:fillColor="#333333"
+        android:pathData="M65,125 Q100,165 135,125 Q100,145 65,125 Z" />
+    
+    <!-- 眉毛（上扬的） -->
+    <path
+        android:fillColor="#333333"
+        android:pathData="M55,65 Q75,55 95,65"
+        android:strokeWidth="3"
+        android:strokeColor="#333333" />
+    
+    <path
+        android:fillColor="#333333"
+        android:pathData="M105,65 Q125,55 145,65"
+        android:strokeWidth="3"
+        android:strokeColor="#333333" />
+    
+    <!-- 兴奋的星星装饰 -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M45,45 L47,50 L52,50 L48,53 L50,58 L45,55 L40,58 L42,53 L38,50 L43,50 Z" />
+    
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M155,45 L157,50 L162,50 L158,53 L160,58 L155,55 L150,58 L152,53 L148,50 L153,50 Z" />
+</vector>

@@ -12,6 +12,9 @@ import androidx.fragment.app.Fragment
 import com.example.echopaw.R
 import com.example.echopaw.databinding.FragmentHomeBinding
 import com.example.echopaw.databinding.FragmentMapBinding
+import com.example.echopaw.floater.FloaterFragment
+import com.example.echopaw.navigation.MainActivity
+import com.example.echopaw.phonograph.PhonographFragment
 import me.everything.android.ui.overscroll.OverScrollDecoratorHelper
 
 /**
@@ -84,12 +87,31 @@ class HomeFragment : Fragment() {
                 requireActivity().overridePendingTransition(R.anim.zoom_in, R.anim.zoom_out)
             }
         }
+
+        // 设置许愿按钮点击事件 - 改为Activity启动模式
+        binding.ibWish.setOnClickListener {
+            startActivity(Intent(requireContext(), com.example.echopaw.phonograph.PhonographActivity::class.java)).also {
+                // 添加滑入转场动画效果
+                requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            }
+        }
+
+        // 设置留声瓶按钮点击事件 - 改为Activity启动模式
+        binding.ibVoice.setOnClickListener {
+            startActivity(Intent(requireContext(), com.example.echopaw.floater.FloaterActivity::class.java)).also {
+                // 添加滑入转场动画效果
+                requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            }
+        }
         ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(0, systemBars.top, 0, 0)
             WindowInsetsCompat.CONSUMED
         }
     }
+
+    // 移除了navigateToPhonograph()和navigateToFloater()方法
+    // 现在使用Activity启动模式，不再需要Fragment导航
 
     /**
      * Fragment视图销毁时的清理工作

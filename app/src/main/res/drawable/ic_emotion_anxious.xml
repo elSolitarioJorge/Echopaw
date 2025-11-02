@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    
+    <!-- 脸部圆形背景 -->
+    <path
+        android:fillColor="#FFB74D"
+        android:pathData="M100,20 C144.18,20 180,55.82 180,100 C180,144.18 144.18,180 100,180 C55.82,180 20,144.18 20,100 C20,55.82 55.82,20 100,20 Z" />
+    
+    <!-- 左眼（焦虑的大眼睛） -->
+    <path
+        android:fillColor="#333333"
+        android:pathData="M75,80 C82.18,80 88,85.82 88,93 C88,100.18 82.18,106 75,106 C67.82,106 62,100.18 62,93 C62,85.82 67.82,80 75,80 Z" />
+    
+    <!-- 右眼（焦虑的大眼睛） -->
+    <path
+        android:fillColor="#333333"
+        android:pathData="M125,80 C132.18,80 138,85.82 138,93 C138,100.18 132.18,106 125,106 C117.82,106 112,100.18 112,93 C112,85.82 117.82,80 125,80 Z" />
+    
+    <!-- 焦虑的嘴巴（波浪形） -->
+    <path
+        android:pathData="M75,130 Q85,125 95,130 Q105,135 115,130 Q125,125 135,130"
+        android:strokeWidth="3"
+        android:strokeColor="#333333" />
+    
+    <!-- 眉毛（紧皱的） -->
+    <path
+        android:fillColor="#333333"
+        android:pathData="M55,70 L85,75 L85,80 L55,75 Z" />
+    
+    <path
+        android:fillColor="#333333"
+        android:pathData="M115,75 L145,70 L145,75 L115,80 Z" />
+    
+    <!-- 汗滴 -->
+    <path
+        android:fillColor="#4FC3F7"
+        android:pathData="M45,60 Q43,70 45,80 Q47,70 45,60 Z" />
+    
+    <path
+        android:fillColor="#4FC3F7"
+        android:pathData="M155,60 Q153,70 155,80 Q157,70 155,60 Z" />
+    
+    <!-- 额头皱纹 -->
+    <path
+        android:pathData="M70,55 Q100,50 130,55"
+        android:strokeWidth="1"
+        android:strokeColor="#333333"
+        android:strokeAlpha="0.5" />
+    
+    <path
+        android:pathData="M75,60 Q100,55 125,60"
+        android:strokeWidth="1"
+        android:strokeColor="#333333"
+        android:strokeAlpha="0.5" />
+</vector>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    
+    <!-- 脸部圆形背景 -->
+    <path
+        android:fillColor="#87CEEB"
+        android:pathData="M100,20 C144.18,20 180,55.82 180,100 C180,144.18 144.18,180 100,180 C55.82,180 20,144.18 20,100 C20,55.82 55.82,20 100,20 Z" />
+    
+    <!-- 左眼（闭着的） -->
+    <path
+        android:fillColor="#333333"
+        android:pathData="M65,85 Q75,90 85,85"
+        android:strokeWidth="3"
+        android:strokeColor="#333333" />
+    
+    <!-- 右眼（闭着的） -->
+    <path
+        android:fillColor="#333333"
+        android:pathData="M115,85 Q125,90 135,85"
+        android:strokeWidth="3"
+        android:strokeColor="#333333" />
+    
+    <!-- 悲伤的嘴巴 -->
+    <path
+        android:pathData="M70,140 Q100,120 130,140"
+        android:strokeWidth="4"
+        android:strokeColor="#333333" />
+    
+    <!-- 左眼泪滴 -->
+    <path
+        android:fillColor="#4FC3F7"
+        android:pathData="M70,95 Q68,105 70,115 Q72,105 70,95 Z" />
+    
+    <!-- 右眼泪滴 -->
+    <path
+        android:fillColor="#4FC3F7"
+        android:pathData="M130,95 Q128,105 130,115 Q132,105 130,95 Z" />
+</vector>

@@ -27,15 +27,20 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
+import com.example.echopaw.utils.ToastUtils
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.amap.api.location.AMapLocation
 import com.amap.api.location.AMapLocationClient
 import com.amap.api.location.AMapLocationClientOption
@@ -59,8 +64,26 @@ import com.amap.api.services.poisearch.PoiResult
 import com.amap.api.services.poisearch.PoiSearch
 import com.example.echopaw.R
 import com.example.echopaw.databinding.FragmentMapBinding
+import com.example.echopaw.network.AuthManager
+import com.example.echopaw.network.AudioRecord
+import com.example.echopaw.network.AudioDetail
+import com.example.echopaw.network.RetrofitClient
+import com.example.echopaw.service.LocationService
+import com.example.echopaw.callback.MapViewModel
+import com.example.echopaw.audio.AudioPlayerManager
+import com.example.echopaw.audio.EnhancedAudioMarkerManager
+import com.example.echopaw.utils.TimeUtils
+import com.example.echopaw.utils.LocationUtils
+import com.example.echopaw.utils.MapInteractionController
+import com.example.echopaw.config.MapInteractionConfig
+import com.example.echopaw.monitor.PerformanceMonitor
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.tabs.TabLayout
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
+import java.lang.Thread.sleep
 
 /**
  * 地图Fragment
@@ -105,6 +128,32 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
     
     /** 位置变化监听器 */
     private var mListener: LocationSource.OnLocationChangedListener? = null
+
+    // ViewModel和音频相关
+    private val mapViewModel: MapViewModel by viewModels()
+    
+    // 音频功能管理器
+    /** 音频播放管理器 */
+    private lateinit var audioPlayerManager: AudioPlayerManager
+    
+    /** 音频标记管理器 */
+    private lateinit var audioMarkerManager: EnhancedAudioMarkerManager
+    
+    /** 地图交互控制器 */
+    private lateinit var mapInteractionController: MapInteractionController
+    
+    /** 性能监控器 */
+    private lateinit var performanceMonitor: PerformanceMonitor
+    
+    // 控制面板相关
+    /** 音频播放控制面板 */
+    private var audioControlPanel: View? = null
+    
+    /** 当前显示的音频详情 */
+    private var currentAudioDetail: AudioDetail? = null
+    
+    /** 时间更新任务 */
+    private var timeUpdateJob: Job? = null
 
     // Search related
     /** 地理编码搜索实例 */
@@ -190,11 +239,12 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
     ) { result ->
         Log.d(TAG, "Permission request result: $result")
         if (result) {
-            Log.d(TAG, "Permission granted")
-            showMsg("Permission granted")
+            Log.d(TAG, "Permission granted, starting location")
+            showMsg("位置权限已授予")
+            startLocation()
         } else {
             Log.d(TAG, "Permission denied")
-            showMsg("Permission denied")
+            showMsg("位置权限被拒绝，无法获取附近音频")
         }
     }
 
@@ -238,6 +288,9 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
         // 设置状态栏透明
         makeStatusBarTransparent()
 
+        // 初始化性能监控器
+        performanceMonitor = PerformanceMonitor(MapInteractionConfig.getInstance(requireContext()))
+
         // 调整布局以避免状态栏覆盖内容
         adjustForKeyboard()
         binding.mapView.onCreate(savedInstanceState)
@@ -245,6 +298,9 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
         initMap()
         initView()
         initSearch()
+        initAudioManagers()
+        initAudioControlPanel()
+        observeAudioData()
 
         ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -303,6 +359,9 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
      * @throws RuntimeException 当定位初始化失败时抛出异常
      */
     private fun initLocation() {
+        // 开始监控定位初始化性能
+        val timer = performanceMonitor.startTimer("location_initialization")
+        
         try {
             mLocationClient = AMapLocationClient(requireContext())
             mLocationClient?.setLocationListener(this)
@@ -313,7 +372,14 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
                 httpTimeOut = 6000
             }
             mLocationClient?.setLocationOption(mLocationOption)
+            
+            // 结束定位初始化性能监控
+            val duration = timer.stopAndRecord(performanceMonitor)
+            Log.d(TAG, "Location initialization completed in ${duration}ms")
         } catch (e: Exception) {
+            // 记录初始化失败
+            timer.stopAndRecord(performanceMonitor)
+            Log.e(TAG, "Location initialization failed", e)
             throw RuntimeException(e)
         }
     }
@@ -331,6 +397,9 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
      */
     private fun initMap() {
         if (aMap == null) {
+            // 开始监控地图初始化性能
+            val timer = performanceMonitor.startTimer("map_initialization")
+            
             aMap = binding.mapView.map.apply {
                 mapType = AMap.MAP_TYPE_NIGHT
                 setLocationSource(this@MapFragment)
@@ -340,13 +409,75 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
 
                 setOnMapClickListener(this@MapFragment)
                 setOnMapLongClickListener(this@MapFragment)
-
+                
                 uiSettings.apply {
                     isZoomControlsEnabled = false
                     isScaleControlsEnabled = true
                 }
             }
+            
+            // 初始化地图交互控制器
+            initMapInteractionController()
+            
+            // 结束地图初始化性能监控
+            val duration = timer.stopAndRecord(performanceMonitor)
+            Log.d(TAG, "Map initialization completed in ${duration}ms")
         }
+    }
+    
+    /**
+     * 初始化地图交互控制器
+     * 
+     * 使用优化的地图交互控制器替换原有的简单相机变化监听器，
+     * 提供防抖机制、距离阈值控制等优化功能
+     */
+    private fun initMapInteractionController() {
+        // 获取配置实例
+        val config = MapInteractionConfig.getInstance(requireContext())
+        
+        // 创建地图交互控制器
+        mapInteractionController = MapInteractionController(config)
+        
+        // 设置地图交互监听器
+        mapInteractionController.setMapInteractionListener(object : MapInteractionController.MapInteractionListener {
+            override fun onMapPositionChanged(newPosition: CameraPosition, oldPosition: CameraPosition?) {
+                // 地图位置发生有效变化时的回调
+                Log.d(TAG, "Map position changed with optimization: ${newPosition.target.latitude}, ${newPosition.target.longitude}")
+            }
+            
+            override fun onDataLoadRequired(position: CameraPosition) {
+                // 防抖延迟结束，需要加载数据时的回调
+                Log.d(TAG, "Data load required after debounce: ${position.target.latitude}, ${position.target.longitude}")
+                if (AuthManager.isLoggedIn()) {
+                    lifecycleScope.launch {
+                        mapViewModel.loadNearbyAudioRecords(
+                            position.target.latitude, 
+                            position.target.longitude,
+                            forceRefresh = false
+                        )
+                    }
+                }
+            }
+        })
+        
+        // 设置地图相机变化监听器，使用优化的控制器处理
+        aMap?.setOnCameraChangeListener(object : AMap.OnCameraChangeListener {
+            override fun onCameraChange(cameraPosition: CameraPosition?) {
+                // 相机正在变化时，传递给控制器处理
+                cameraPosition?.let { position ->
+                    mapInteractionController.onCameraPositionChanged(position)
+                }
+            }
+            
+            override fun onCameraChangeFinish(cameraPosition: CameraPosition?) {
+                // 相机变化完成时，也传递给控制器处理
+                cameraPosition?.let { position ->
+                    mapInteractionController.onCameraPositionChanged(position)
+                }
+            }
+        })
+        
+        Log.d(TAG, "MapInteractionController initialized with config: ${config.getConfigSummary()}")
     }
 
     /**
@@ -464,6 +595,7 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
                         }
                         // 已隐藏
                         BottomSheetBehavior.STATE_HIDDEN -> {
+                            // 显示返回按钮
                             binding.ibBack.visibility = View.VISIBLE
                             // 隐藏底部导航
                             hideBottomNavigation()
@@ -504,6 +636,588 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
             }
         } catch (e: AMapException) {
             e.printStackTrace()
+        }
+    }
+
+    /**
+     * 初始化音频管理器
+     * 
+     * 该方法初始化音频播放和标记管理器：
+     * 1. 创建音频播放管理器并设置生命周期观察
+     * 2. 创建音频标记管理器并设置点击监听
+     * 3. 设置播放状态回调
+     */
+    private fun initAudioManagers() {
+        try {
+            // 初始化音频播放管理器
+            audioPlayerManager = AudioPlayerManager(requireContext(), lifecycleScope)
+            lifecycle.addObserver(audioPlayerManager)
+            
+            // 设置播放状态监听
+            audioPlayerManager.setPlaybackListener(object : AudioPlayerManager.PlaybackListener {
+                override fun onPlaybackStarted(audioId: String) {
+                    Log.d(TAG, "Audio playback started: $audioId")
+                    audioMarkerManager.updateMarkerPlayingState(audioId, true)
+                    updatePlayButtonState(true)
+                }
+
+                override fun onPlaybackPaused(audioId: String) {
+                    Log.d(TAG, "Audio playback paused: $audioId")
+                    audioMarkerManager.updateMarkerPlayingState(audioId, false)
+                    updatePlayButtonState(false)
+                }
+
+                override fun onPlaybackCompleted(audioId: String) {
+                    Log.d(TAG, "Audio playback completed: $audioId")
+                    audioMarkerManager.updateMarkerPlayingState(audioId, false)
+                    updatePlayButtonState(false)
+                }
+
+                override fun onPlaybackError(audioId: String, error: String) {
+                    Log.e(TAG, "Audio playback error for $audioId: $error")
+                    audioMarkerManager.updateMarkerPlayingState(audioId, false)
+                    updatePlayButtonState(false)
+                    showToast("播放失败: $error")
+                }
+
+                override fun onProgressUpdate(audioId: String, currentPosition: Int, duration: Int) {
+                    // 可以在这里更新播放进度
+                }
+
+                override fun onBufferingUpdate(audioId: String, percent: Int) {
+                    // 可以在这里更新缓冲进度
+                }
+            })
+            
+            // 初始化音频标记管理器
+            initAudioMarkerManagerWhenMapReady()
+            
+            Log.d(TAG, "Audio managers initialized successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing audio managers: ${e.message}", e)
+            showToast("音频功能初始化失败")
+        }
+    }
+
+    /**
+     * 当地图准备就绪时初始化EnhancedAudioMarkerManager
+     */
+    private fun initAudioMarkerManagerWhenMapReady() {
+        if (aMap != null) {
+            Log.d(TAG, "Initializing EnhancedAudioMarkerManager with aMap")
+            try {
+                val config = MapInteractionConfig.getInstance(requireContext())
+                audioMarkerManager = EnhancedAudioMarkerManager(requireContext(), aMap!!, config)
+                audioMarkerManager.setupMapMarkerClickListener()
+                
+                // 设置标记点击监听
+                audioMarkerManager.setMarkerClickListener(object : EnhancedAudioMarkerManager.MarkerClickListener {
+                    override fun onMarkerClicked(audioRecord: AudioRecord, marker: Marker) {
+                        Log.d(TAG, "Audio marker clicked: ${audioRecord.audioId}")
+                        handleAudioMarkerClick(audioRecord)
+                    }
+                })
+                 Log.d(TAG, "EnhancedAudioMarkerManager initialized successfully")
+                 
+                 // 如果已经有音频数据，立即添加标记
+                 mapViewModel.audioRecordsWithLocation.value?.let { audioRecordsWithLocation ->
+                     if (audioRecordsWithLocation.isNotEmpty()) {
+                         Log.d(TAG, "Adding existing audio records to map: ${audioRecordsWithLocation.size} records")
+                         audioMarkerManager.updateAudioMarkersIncremental(audioRecordsWithLocation)
+                     }
+                 }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error initializing EnhancedAudioMarkerManager: ${e.message}", e)
+                // 如果初始化失败，延迟重试
+                Handler(Looper.getMainLooper()).postDelayed({
+                    initAudioMarkerManagerWhenMapReady()
+                }, 200)
+            }
+        } else {
+            Log.d(TAG, "aMap not ready, retrying EnhancedAudioMarkerManager initialization in 100ms")
+            // 如果aMap还没有准备好，延迟100ms后重试
+            Handler(Looper.getMainLooper()).postDelayed({
+                initAudioMarkerManagerWhenMapReady()
+            }, 100)
+        }
+    }
+
+    /**
+     * 初始化音频控制面板
+     * 
+     * 该方法初始化音频播放控制面板的UI：
+     * 1. 获取控制面板容器引用
+     * 2. 动态加载控制面板布局
+     * 3. 设置按钮点击监听器
+     * 4. 初始化面板状态
+     */
+    private fun initAudioControlPanel() {
+        try {
+            // 获取控制面板容器
+            val audioControlContainer = binding.root.findViewById<FrameLayout>(R.id.audio_control_container)
+            
+            audioControlContainer?.let { container ->
+                // 动态加载控制面板布局
+                val inflater = LayoutInflater.from(requireContext())
+                audioControlPanel = inflater.inflate(R.layout.audio_player_control_panel, container, false)
+                
+                // 将控制面板添加到容器中
+                container.addView(audioControlPanel)
+                
+                audioControlPanel?.let { panel ->
+                    // 设置返回按钮点击监听
+                    panel.findViewById<View>(R.id.btn_back)?.setOnClickListener {
+                        hideAudioControlPanel()
+                    }
+                    
+                    // 设置收起按钮点击监听
+                    panel.findViewById<View>(R.id.btn_shou_qi)?.setOnClickListener {
+                        hideAudioControlPanel()
+                    }
+                    
+                    // 设置播放/暂停按钮点击监听
+                    panel.findViewById<View>(R.id.btn_play)?.setOnClickListener {
+                        handlePlayButtonClick()
+                    }
+                    
+                    // 设置回复按钮点击监听
+                    panel.findViewById<View>(R.id.btn_reply)?.setOnClickListener {
+                        handleReplyButtonClick()
+                    }
+                    
+                    // 初始状态为隐藏
+                    panel.visibility = View.GONE
+                }
+            }
+            
+            Log.d(TAG, "Audio control panel initialized successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing audio control panel: ${e.message}", e)
+        }
+    }
+
+    /**
+     * 观察音频数据变化
+     * 
+     * 该方法设置对ViewModel中音频数据的观察：
+     * 1. 观察附近音频记录列表变化
+     * 2. 观察加载状态变化
+     * 3. 观察错误消息变化
+     */
+    private fun observeAudioData() {
+        try {
+            // 观察带有位置信息的音频记录
+            mapViewModel.audioRecordsWithLocation.observe(viewLifecycleOwner) { audioRecordsWithLocation ->
+                Log.d(TAG, "Audio records with location updated: ${audioRecordsWithLocation.size} records")
+                if (::audioMarkerManager.isInitialized) {
+                    // 使用增量更新方法，提高性能
+                    audioMarkerManager.updateAudioMarkersIncremental(audioRecordsWithLocation)
+                }
+            }
+            
+            // 观察加载状态
+            mapViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+                Log.d(TAG, "Loading state changed: $isLoading")
+                // 可以在这里显示/隐藏加载指示器
+            }
+            
+            // 观察错误消息
+            mapViewModel.errorMessage.observe(viewLifecycleOwner) { errorMessage ->
+                errorMessage?.let { message ->
+                    Log.e(TAG, "Audio data error: $message")
+                    showToast(message)
+                }
+            }
+            
+            Log.d(TAG, "Audio data observation setup successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up audio data observation: ${e.message}", e)
+        }
+    }
+
+    /**
+     * 处理音频标记点击事件
+     * 
+     * 该方法在用户点击地图上的音频标记时被调用：
+     * 1. 获取音频详情信息
+     * 2. 显示音频控制面板
+     * 3. 更新标记状态
+     * 
+     * @param audioRecord 被点击的音频记录
+     */
+    private fun handleAudioMarkerClick(audioRecord: AudioRecord) {
+        try {
+            Log.d(TAG, "Handling audio marker click for: ${audioRecord.audioId}")
+            
+            // 获取音频详情
+            lifecycleScope.launch {
+                try {
+                    val response = RetrofitClient.apiService.getAudioDetail(audioRecord.audioId)
+                    if (response.isSuccessful && response.body()?.code == 200) {
+                        val audioDetail = response.body()?.data
+                        audioDetail?.let { detail ->
+                            currentAudioDetail = detail
+                            showAudioControlPanel(detail)
+                            
+                            // 标记已被点击，显示音频控制面板
+                        }
+                    } else {
+                        Log.e(TAG, "Failed to get audio detail: ${response.body()?.message}")
+                        showToast("获取音频详情失败")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error getting audio detail: ${e.message}", e)
+                    showToast("网络错误，请重试")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error handling audio marker click: ${e.message}", e)
+            showToast("操作失败")
+        }
+    }
+
+    /**
+     * 显示音频控制面板
+     * 
+     * 该方法显示音频播放控制面板并填充数据：
+     * 1. 设置音频详情信息
+     * 2. 格式化时间显示
+     * 3. 解析并显示位置信息
+     * 4. 启动时间更新任务
+     * 5. 隐藏其他UI元素（bottom_sheet_ray、ib_back、fabWorld）
+     * 
+     * @param audioDetail 音频详情数据
+     */
+    private fun showAudioControlPanel(audioDetail: AudioDetail) {
+        try {
+            audioControlPanel?.let { panel ->
+                
+                // 设置时间显示
+                updateTimeDisplay(audioDetail)
+                
+                // 设置位置信息
+                updateLocationDisplay(audioDetail)
+                
+                // 重置播放按钮状态
+                updatePlayButtonState(false)
+                
+                // 隐藏其他UI元素
+                hideOtherUIElements()
+                
+                // 显示面板
+                panel.visibility = View.VISIBLE
+                
+                // 启动时间更新任务
+                startTimeUpdateTask(audioDetail)
+                
+                Log.d(TAG, "Audio control panel shown successfully")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing audio control panel: ${e.message}", e)
+            showToast("显示控制面板失败")
+        }
+    }
+
+    /**
+     * 隐藏音频控制面板
+     * 
+     * 该方法隐藏音频播放控制面板并重置状态：
+     * 1. 隐藏控制面板
+     * 2. 停止音频播放
+     * 3. 重置标记状态
+     * 4. 停止时间更新任务
+     * 5. 显示其他UI元素（bottom_sheet_ray、ib_back、fabWorld）
+     */
+    private fun hideAudioControlPanel() {
+        try {
+            audioControlPanel?.visibility = View.GONE
+            
+            // 停止音频播放
+            if (::audioPlayerManager.isInitialized) {
+                audioPlayerManager.stopAudio()
+            }
+            
+            // 重置标记状态
+            currentAudioDetail?.let { detail ->
+                if (::audioMarkerManager.isInitialized) {
+                    audioMarkerManager.updateMarkerPlayingState(detail.audioId, false)
+                }
+            }
+            
+            // 停止时间更新任务
+            timeUpdateJob?.cancel()
+            timeUpdateJob = null
+            
+            // 显示其他UI元素
+            showOtherUIElements()
+            
+            // 清空当前音频详情
+            currentAudioDetail = null
+            
+            Log.d(TAG, "Audio control panel hidden successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error hiding audio control panel: ${e.message}", e)
+        }
+    }
+
+    /**
+     * 隐藏其他UI元素
+     * 
+     * 当音频控制面板显示时，隐藏以下UI元素：
+     * 1. bottom_sheet_ray - 底部抽屉
+     * 2. ib_back - 返回按钮
+     * 3. fabWorld - 世界按钮
+     */
+    private fun hideOtherUIElements() {
+        try {
+            // 隐藏底部抽屉
+            binding.bottomSheetRay.visibility = View.GONE
+
+            // 隐藏底部导航栏
+            hideBottomNavigation()
+
+            // 隐藏返回按钮
+            binding.ibBack.visibility = View.GONE
+
+            // 隐藏世界按钮
+            binding.fabWorld.visibility = View.GONE
+            
+            Log.d(TAG, "Other UI elements hidden successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error hiding other UI elements: ${e.message}", e)
+        }
+    }
+
+    /**
+     * 显示其他UI元素
+     * 
+     * 当音频控制面板隐藏时，显示以下UI元素：
+     * 1. bottom_sheet_ray - 底部抽屉
+     * 2. ib_back - 返回按钮
+     * 3. fabWorld - 世界按钮
+     */
+    private fun showOtherUIElements() {
+        try {
+            // 显示底部抽屉
+            binding.bottomSheetRay.visibility = View.VISIBLE
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+
+            // 显示世界按钮
+            binding.fabWorld?.visibility = View.VISIBLE
+
+            Log.d(TAG, "Other UI elements shown successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing other UI elements: ${e.message}", e)
+        }
+    }
+
+    /**
+     * 处理播放按钮点击事件
+     * 
+     * 该方法处理播放/暂停按钮的点击：
+     * 1. 检查当前播放状态
+     * 2. 执行播放或暂停操作
+     * 3. 更新按钮状态
+     */
+    private fun handlePlayButtonClick() {
+        try {
+            currentAudioDetail?.let { detail ->
+                if (::audioPlayerManager.isInitialized) {
+                    if (audioPlayerManager.isPlaying()) {
+                        // 当前正在播放，执行暂停
+                        audioPlayerManager.pauseAudio()
+                        Log.d(TAG, "Audio playback paused")
+                    } else {
+                        // 当前未播放，开始播放
+                        detail.audioUrl?.let { audioUrl ->
+                            audioPlayerManager.playAudio(detail.audioId, audioUrl)
+                            Log.d(TAG, "Audio playback started: ${detail.audioId}")
+                        } ?: run {
+                            showToast("音频文件不存在")
+                            Log.e(TAG, "Audio URL is null for: ${detail.audioId}")
+                        }
+                    }
+                } else {
+                    showToast("音频播放器未初始化")
+                    Log.e(TAG, "AudioPlayerManager not initialized")
+                }
+            } ?: run {
+                showToast("音频详情不存在")
+                Log.e(TAG, "Current audio detail is null")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error handling play button click: ${e.message}", e)
+            showToast("播放操作失败")
+        }
+    }
+
+    /**
+     * 处理回复按钮点击事件
+     * 
+     * 该方法处理回复按钮的点击：
+     * 1. 隐藏控制面板
+     * 2. 可以在这里添加回复功能的逻辑
+     */
+    private fun handleReplyButtonClick() {
+        try {
+            Log.d(TAG, "Reply button clicked")
+            hideAudioControlPanel()
+            
+            // 这里可以添加回复功能的逻辑
+            // 例如：打开回复对话框或跳转到回复页面
+            currentAudioDetail?.let { detail ->
+                showToast("回复功能待实现")
+                // TODO: 实现回复功能
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error handling reply button click: ${e.message}", e)
+        }
+    }
+
+    /**
+     * 更新播放按钮状态
+     * 
+     * 该方法根据播放状态更新播放按钮的显示：
+     * 1. 更新按钮图标
+     * 2. 更新按钮文本（如果有的话）
+     * 
+     * @param isPlaying 是否正在播放
+     */
+    private fun updatePlayButtonState(isPlaying: Boolean) {
+        try {
+            val playButton = audioControlPanel?.findViewById<ImageView>(R.id.btn_play)
+            if (playButton != null) {
+                // 根据播放状态设置不同的图标
+                val iconRes = if (isPlaying) {
+                    R.drawable.ic_pause // 播放时显示暂停图标
+                } else {
+                    R.drawable.ic_play // 暂停时显示播放图标
+                }
+                playButton.setImageResource(iconRes)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating play button state: ${e.message}", e)
+        }
+    }
+
+    /**
+     * 更新时间显示
+     * 
+     * 该方法更新控制面板中的时间显示：
+     * 1. 计算并显示相对时间（X分钟前）
+     * 2. 格式化并显示发布时间
+     * 
+     * @param audioDetail 音频详情数据
+     */
+    private fun updateTimeDisplay(audioDetail: AudioDetail) {
+        try {
+            audioControlPanel?.let { panel ->
+                // 更新相对时间显示
+                panel.findViewById<TextView>(R.id.tv_time_ago)?.let { timeAgoView ->
+                    val relativeTime = TimeUtils.getRelativeTime(audioDetail.timestamp)
+                    timeAgoView.text = "发布于$relativeTime"
+                }
+                
+                // 更新发布时间显示
+                panel.findViewById<TextView>(R.id.tv_time_release)?.let { timeReleaseView ->
+                    val formattedTime = TimeUtils.formatDisplayTime(audioDetail.timestamp)
+                    timeReleaseView.text = formattedTime
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating time display: ${e.message}", e)
+        }
+    }
+
+    /**
+     * 更新位置信息显示
+     * 
+     * 该方法更新控制面板中的位置信息显示：
+     * 1. 解析地理坐标
+     * 2. 格式化为"省市•城市•区县"格式
+     * 
+     * @param audioDetail 音频详情数据
+     */
+    private fun updateLocationDisplay(audioDetail: AudioDetail) {
+        try {
+            audioControlPanel?.findViewById<TextView>(R.id.tv_location)?.let { locationView ->
+                val locationParts = listOfNotNull(
+                    audioDetail.province.takeIf { it.isNotEmpty() },
+                    audioDetail.city.takeIf { it.isNotEmpty() },
+                    audioDetail.district.takeIf { it.isNotEmpty() }
+                )
+
+                if (locationParts.isNotEmpty()) {
+                    locationView.text = locationParts.joinToString("•")
+                } else {
+                    // 最后尝试使用经纬度解析地址
+                    lifecycleScope.launch {
+                        try {
+                            val address = LocationUtils.resolveAddress(
+                                requireContext(),
+                                audioDetail.location.lat,
+                                audioDetail.location.lon
+                            )
+                            locationView.text = address
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error resolving address: ${e.message}", e)
+                            locationView.text = "位置信息不可用"
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating location display: ${e.message}", e)
+        }
+    }
+
+    /**
+     * 启动时间更新任务
+     * 
+     * 该方法启动定时任务来更新时间显示：
+     * 1. 取消之前的更新任务
+     * 2. 启动新的定时更新任务
+     * 3. 根据时间间隔动态调整更新频率
+     * 
+     * @param audioDetail 音频详情数据
+     */
+    private fun startTimeUpdateTask(audioDetail: AudioDetail) {
+        try {
+            // 取消之前的任务
+            timeUpdateJob?.cancel()
+            
+            // 启动新的更新任务
+            timeUpdateJob = lifecycleScope.launch {
+                while (isActive) {
+                    try {
+                        // 检查是否需要更新
+                        updateTimeDisplay(audioDetail)
+                        
+                        // 获取下次更新的延迟时间，添加额外的timestamp验证
+                        val timestamp = audioDetail.timestamp?.takeIf { it.isNotBlank() } ?: ""
+                        val delayMs = TimeUtils.getNextUpdateDelay(TimeUtils.parseTimeString(timestamp))
+                         delay(delayMs)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error in time update task: ${e.message}", e)
+                        break
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error starting time update task: ${e.message}", e)
+        }
+    }
+
+    /**
+     * 显示Toast消息
+     * 
+     * @param message 要显示的消息
+     */
+    private fun showToast(message: String) {
+        try {
+            ToastUtils.showInfo(requireContext(), message)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing toast: ${e.message}", e)
         }
     }
 
@@ -671,7 +1385,7 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
      * @param message 要显示的消息内容
      */
     private fun showMsg(message: CharSequence) {
-        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+        ToastUtils.showInfo(requireContext(), message.toString())
     }
 
     /**
@@ -687,12 +1401,20 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
      * @param aMapLocation 高德定位结果对象，包含位置信息和错误码
      */
     override fun onLocationChanged(aMapLocation: AMapLocation?) {
+        Log.d(TAG, "onLocationChanged called")
+        
+        // 开始监控定位处理性能
+        val timer = performanceMonitor.startTimer("location_processing")
+        
         aMapLocation ?: run {
+            Log.e(TAG, "Location failed, aMapLocation is null")
             showMsg("Location failed, aMapLocation is null")
+            timer.stopAndRecord(performanceMonitor)
             return
         }
 
         if (aMapLocation.errorCode == 0) {
+            Log.d(TAG, "Location success: lat=${aMapLocation.latitude}, lng=${aMapLocation.longitude}, city=${aMapLocation.city}")
             stopLocation()
             mListener?.onLocationChanged(aMapLocation)
             city = aMapLocation.city
@@ -705,9 +1427,18 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
                 city ?: "",
                 adcode ?: ""
             )
+            
+            // 加载附近的音频记录
+            Log.d(TAG, "Calling loadNearbyAudioRecords from onLocationChanged")
+            loadNearbyAudioRecords(aMapLocation.latitude, aMapLocation.longitude)
+            
+            // 结束定位处理性能监控
+            val duration = timer.stopAndRecord(performanceMonitor)
+            Log.d(TAG, "Location processing completed in ${duration}ms")
         } else {
+            Log.e(TAG, "Location failed, ErrCode:${aMapLocation.errorCode}, errInfo:${aMapLocation.errorInfo}")
             showMsg("Location failed, error: ${aMapLocation.errorInfo}")
-            Log.e(TAG, "location Error, ErrCode:${aMapLocation.errorCode}, errInfo:${aMapLocation.errorInfo}")
+            timer.stopAndRecord(performanceMonitor)
         }
     }
 
@@ -778,6 +1509,14 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
             hideBottomNavigation()
             // 隐藏底部面板
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+            
+            // 长按时测试音频加载功能（调试用）
+            Log.d(TAG, "Long click detected, testing audio loading at: ${p0.latitude}, ${p0.longitude}")
+            if (AuthManager.isLoggedIn()) {
+                lifecycleScope.launch {
+                    mapViewModel.loadNearbyAudioRecords(p0.latitude, p0.longitude, forceRefresh = true)
+                }
+            }
         }
     }
 
@@ -900,7 +1639,7 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
                 )
             }
         } else {
-            showMsg("Failed to get address, rCode = $rCode")
+            // showMsg("Failed to get address, rCode = $rCode")
         }
     }
 
@@ -993,6 +1732,12 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
      */
     override fun onDestroyView() {
         super.onDestroyView()
+        
+        // 清理地图交互控制器资源
+        if (::mapInteractionController.isInitialized) {
+            mapInteractionController.cleanup()
+        }
+        
         binding.mapView.onDestroy()
         _binding = null
     }
@@ -1076,6 +1821,71 @@ class MapFragment : Fragment(), AMapLocationListener, LocationSource,
      */
     fun setOnLocationDataListener(listener: OnLocationDataListener) {
         this.locationDataListener = listener
+    }
+
+
+
+    /**
+     * 加载附近的音频记录
+     * 
+     * 该方法在获取到用户位置后调用，用于加载附近的音频记录：
+     * 1. 检查用户是否已登录
+     * 2. 设置当前位置到ViewModel
+     * 3. 触发加载附近音频记录的请求
+     * 4. 设置搜索半径（默认1000米）
+     * 
+     * @param latitude 当前位置的纬度
+     * @param longitude 当前位置的经度
+     */
+    private fun loadNearbyAudioRecords(latitude: Double, longitude: Double) {
+        Log.d(TAG, "loadNearbyAudioRecords called with lat: $latitude, lng: $longitude")
+        
+        Log.d(TAG, "Checking user login status...")
+        
+        // 确保AuthManager已初始化
+        try {
+            AuthManager.init(requireContext())
+            Log.d(TAG, "AuthManager initialized successfully")
+            
+            val accessToken = AuthManager.getAccessToken()
+            Log.d(TAG, "Access token: ${if (accessToken != null) "exists (${accessToken.take(20)}...)" else "null"}")
+            
+            val isLoggedIn = AuthManager.isLoggedIn()
+            Log.d(TAG, "User login status: $isLoggedIn")
+            
+            if (!isLoggedIn) {
+                Log.w(TAG, "User not logged in, skipping audio records loading")
+                showMsg("请先登录以获取附近音频")
+                return
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking auth status: ${e.message}", e)
+            showMsg("认证检查失败")
+            return
+        }
+        
+        Log.d(TAG, "User is logged in, proceeding with audio records loading")
+        
+        // 设置当前位置
+        val locationResult = LocationService.LocationResult(
+            latitude = latitude,
+            longitude = longitude,
+            accuracy = 0f,
+            address = null,
+            errorCode = 0,
+            errorInfo = null
+        )
+        mapViewModel.setCurrentLocation(locationResult)
+        
+        // 设置搜索半径（1000米）
+        mapViewModel.setSearchRadius(1000.0)
+        
+        Log.d(TAG, "Starting to load nearby audio records...")
+        
+        // 加载附近的音频记录
+        lifecycleScope.launch {
+            mapViewModel.loadNearbyAudioRecords(latitude, longitude)
+        }
     }
 
 }

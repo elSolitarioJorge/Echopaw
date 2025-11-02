@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/background"
@@ -64,7 +65,9 @@
         android:id="@+id/input_box"
         android:layout_width="0dp"
         android:layout_height="100dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="32dp"
+        android:layout_marginEnd="16dp"
         android:background="@drawable/bg_edit1"
         android:cursorVisible="true"
         android:focusable="true"
@@ -90,6 +93,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/input_box" />
+
+    <ImageView
+        android:id="@+id/bubble_two"
+        android:layout_width="360dp"
+        android:layout_height="260dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_record2"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/input_box" />
 
     <!-- 音频波形图（初始隐藏） -->
     <com.example.echopaw.home.WaveformView
@@ -147,4 +161,29 @@
             android:textColor="#B3FFFFFF"
             android:visibility="invisible" />
     </LinearLayout>
+
+    <ImageView
+        android:id="@+id/iv_reset"
+        android:layout_width="64dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_reset"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@+id/record_control"
+        app:layout_constraintEnd_toStartOf="@+id/record_control"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/record_control"
+        app:layout_constraintVertical_bias="0.35" />
+
+    <ImageView
+        android:id="@+id/iv_confirm"
+        android:layout_width="64dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_confirm"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@+id/record_control"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/record_control"
+        app:layout_constraintTop_toTopOf="@+id/record_control"
+        app:layout_constraintVertical_bias="0.35" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

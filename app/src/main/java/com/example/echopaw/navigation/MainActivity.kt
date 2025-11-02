@@ -28,12 +28,15 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.FragmentManager
 import com.example.echopaw.R
+import com.example.echopaw.phonograph.PhonographFragment
+import com.example.echopaw.floater.FloaterFragment
 import com.example.echopaw.databinding.ActivityMainBinding
 import com.example.echopaw.home.RecordActivity
 import com.example.echopaw.navigation.contract.INavigationContract
 import com.example.echopaw.navigation.model.NavigationInfo
 import com.example.echopaw.navigation.model.NavigationModel
 import com.example.echopaw.navigation.presenter.NavigationPresenter
+import com.example.echopaw.utils.ToastUtils
 import com.oguzdev.circularfloatingactionmenu.library.FloatingActionMenu
 import com.oguzdev.circularfloatingactionmenu.library.SubActionButton
 
@@ -268,7 +271,7 @@ class MainActivity : AppCompatActivity(), INavigationContract.INavigationView {
      * @param message 要显示的消息文本
      */
     private fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        ToastUtils.showInfo(this, message)
     }
 
     /**
@@ -488,8 +491,16 @@ class MainActivity : AppCompatActivity(), INavigationContract.INavigationView {
                 "心情录" -> startActivity(Intent(this, RecordActivity::class.java)).also {
                     overridePendingTransition(R.anim.zoom_in, R.anim.zoom_out)
                 }
-                "许愿" -> { /* TODO */ }
-                "留声瓶" -> { /* TODO */ }
+                "许愿" -> {
+                    startActivity(Intent(this, com.example.echopaw.phonograph.PhonographActivity::class.java)).also {
+                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                    }
+                }
+                "留声瓶" -> {
+                    startActivity(Intent(this, com.example.echopaw.floater.FloaterActivity::class.java)).also {
+                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                    }
+                }
             }
             handler.postDelayed({ startReturnAnimation() }, ANIMATION_DELAY)
         }
@@ -689,7 +700,7 @@ class MainActivity : AppCompatActivity(), INavigationContract.INavigationView {
      * 2. 提供用户友好的错误信息
      */
     override fun showError() {
-        Toast.makeText(this, "加载导航失败，请重试", Toast.LENGTH_SHORT).show()
+        ToastUtils.showNavigationError(this)
     }
 
     /**
@@ -734,6 +745,56 @@ class MainActivity : AppCompatActivity(), INavigationContract.INavigationView {
             showBottomNavigation()
             true
         }
+    }
+
+    /**
+     * 导航到留声机页面
+     * 
+     * 该方法实现跳转到留声机功能页面：
+     * 1. 隐藏底部导航栏
+     * 2. 创建PhonographFragment实例
+     * 3. 使用Fragment事务添加到容器中
+     * 4. 设置转场动画
+     */
+    private fun navigateToPhonograph() {
+        hideBottomNavigation()
+        
+        val phonographFragment = PhonographFragment()
+        supportFragmentManager.beginTransaction()
+            .setCustomAnimations(
+                R.anim.slide_in_right,
+                R.anim.slide_out_left,
+                R.anim.slide_in_left,
+                R.anim.slide_out_right
+            )
+            .add(R.id.fcv_navigation, phonographFragment)
+            .addToBackStack(null)
+            .commit()
+    }
+
+    /**
+     * 跳转到留声漂流瓶功能页面
+     * 
+     * 该方法负责导航到留声漂流瓶功能的FloaterFragment：
+     * 1. 隐藏底部导航栏
+     * 2. 创建FloaterFragment实例
+     * 3. 使用Fragment事务添加到容器中
+     * 4. 设置转场动画
+     */
+    private fun navigateToFloater() {
+        hideBottomNavigation()
+        
+        val floaterFragment = FloaterFragment()
+        supportFragmentManager.beginTransaction()
+            .setCustomAnimations(
+                R.anim.slide_in_right,
+                R.anim.slide_out_left,
+                R.anim.slide_in_left,
+                R.anim.slide_out_right
+            )
+            .add(R.id.fcv_navigation, floaterFragment)
+            .addToBackStack(null)
+            .commit()
     }
 
     /**
